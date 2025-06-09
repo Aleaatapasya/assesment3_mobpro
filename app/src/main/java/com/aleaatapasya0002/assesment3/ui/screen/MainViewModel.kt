@@ -19,7 +19,7 @@ class MainViewModel : ViewModel() {
     init {
         retrieveData()
     }
-    private fun retrieveData(){
+    fun retrieveData(){
         viewModelScope.launch(Dispatchers.IO) {
             status.value = CakeApi.ApiStatus.LOADING
             try {
@@ -27,6 +27,7 @@ class MainViewModel : ViewModel() {
                status.value = CakeApi.ApiStatus.SUCCESS
             } catch (e: Exception){
                 Log.d("MainViewModel", "Failure: ${e.message}")
+                status.value = CakeApi.ApiStatus.FAILED
             }
         }
     }

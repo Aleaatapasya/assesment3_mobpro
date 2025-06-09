@@ -30,5 +30,5 @@ object CakeApi{
         return "$BASE_URL$imageId.jpg"
     }
 
-    enum class ApiStatus { LOADING, SUCCESS}
+    enum class ApiStatus { LOADING, SUCCESS, FAILED}
 }
