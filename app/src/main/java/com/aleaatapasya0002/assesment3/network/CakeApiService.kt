@@ -25,4 +25,8 @@ object CakeApi{
     val service: CakeApiService by lazy{
         retrofit.create(CakeApiService::class.java)
     }
+
+    fun getCakeUrl(imageId: String): String{
+        return "$BASE_URL$imageId.jpg"
+    }
 }
