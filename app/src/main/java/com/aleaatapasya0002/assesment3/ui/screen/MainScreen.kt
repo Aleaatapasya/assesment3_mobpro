@@ -85,12 +85,18 @@ fun ListItem(cake: Cake) {
     ){
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(CakeApi.getCakeUrl(cake.imageId))
+                .data(
+                    if(cake.namaKue == "")
+                    CakeApi.getCakeUrl("not-found")
+                    else
+                    CakeApi.getCakeUrl(cake.imageId)
+                )
                 .crossfade(true)
                 .build(),
             contentDescription = stringResource(R.string.gambar, cake.namaKue),
             contentScale = ContentScale.Crop,
             placeholder = painterResource(id = R.drawable.loading_img),
+            error = painterResource(id = R.drawable.broken_image),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(4.dp)
