@@ -27,7 +27,7 @@ object CakeApi{
     }
 
     fun getCakeUrl(imageId: String): String{
-        return "$BASE_URL$imageId.jpg"
+        return "$BASE_URL$imageId.php?id=$imageId"
     }
 
     enum class ApiStatus { LOADING, SUCCESS, FAILED}
