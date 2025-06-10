@@ -8,7 +8,10 @@
     <string name="logout">LogOut</string>
     <string name="tambah_kue">Tambah Kue</string>
     <string name="namaKue">Nama Kue</string>
+    <string name="deskripsi">Deskripsi</string>
     <string name="harga">Harga</string>
     <string name="batal">Batal</string>
     <string name="simpan">Simpan</string>
+    <string name="hapus">Hapus</string>
+    <string name="pesan_hapus">Apakah anda yakin ingin menghapus catatan ini?</string>
 </resources>

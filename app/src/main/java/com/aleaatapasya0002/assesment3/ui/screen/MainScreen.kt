@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +25,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -68,6 +70,7 @@ import com.aleaatapasya0002.assesment3.BuildConfig
 import com.aleaatapasya0002.assesment3.R
 import com.aleaatapasya0002.assesment3.model.Cake
 import com.aleaatapasya0002.assesment3.model.User
+import com.aleaatapasya0002.assesment3.network.ApiStatus
 import com.aleaatapasya0002.assesment3.network.CakeApi
 import com.aleaatapasya0002.assesment3.network.UserDataStore
 import com.aleaatapasya0002.assesment3.ui.theme.Assesment3Theme
@@ -94,14 +97,20 @@ fun MainScreen() {
     val errorMessage by viewModel.errorMessage
 
     var showDialog by remember { mutableStateOf(false) }
+
     var showCakeDialog by remember { mutableStateOf(false) }
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    var selectedCake by remember { mutableStateOf<Cake?>(null) }
 
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
     val launcher = rememberLauncherForActivityResult(CropImageContract()) {
         bitmap = getCroppedImage(context.contentResolver, it)
         if (bitmap != null) showCakeDialog = true
     }
-    Scaffold(
+
+    Scaffold (
         topBar = {
             TopAppBar(
                 title = {
@@ -114,14 +123,12 @@ fun MainScreen() {
                 actions = {
                     IconButton(onClick = {
                         if (user.email.isEmpty()){
-                        CoroutineScope(Dispatchers.IO).launch { signIn(context, dataStore) }
-                    }
-                    else{
-                        showDialog = true
-
+                            CoroutineScope(Dispatchers.IO).launch { signIn(context, dataStore) }
                         }
-                    }
-                    ) {
+                        else {
+                            showDialog = true
+                        }
+                    }) {
                         Icon(
                             painter = painterResource(R.drawable.baseline_account_circle_24),
                             contentDescription = stringResource(R.string.profil),
@@ -132,120 +139,124 @@ fun MainScreen() {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = {
-                val options = CropImageContractOptions(
-                    null, CropImageOptions(
-                        imageSourceIncludeGallery = true,
-                        imageSourceIncludeCamera = true,
-                        fixAspectRatio = true
-                    )
+            FloatingActionButton(onClick = {val options = CropImageContractOptions(
+                null, CropImageOptions(
+                    imageSourceIncludeGallery = true,
+                    imageSourceIncludeCamera = true,
+                    fixAspectRatio = true
                 )
+            )
                 launcher.launch(options)
             }) {
                 Icon(
-                    imageVector =  Icons.Default.Add,
+                    imageVector = Icons.Default.Add,
                     contentDescription = stringResource(id = R.string.tambah_kue)
                 )
             }
         }
     ) { innerPadding ->
-        ScreenContent(viewModel, user.email, Modifier.padding(innerPadding))
+        ScreenContent(viewModel, user.email, Modifier.padding(innerPadding),
+            onDelete = { cake -> selectedCake = cake
+                showDeleteDialog = true
+            })
 
-        if (showDialog){
+        if(showDialog) {
             ProfilDialog(
                 user = user,
-                onDismissRequest = {showDialog = false}) {
+                onDismissRequest = { showDialog = false }) {
                 CoroutineScope(Dispatchers.IO).launch { signOut(context, dataStore) }
                 showDialog = false
             }
         }
-        if (showCakeDialog){
+
+        if (showCakeDialog) {
             CakeDialog(
                 bitmap = bitmap,
-                onDismissRequest = {showCakeDialog = false}) {namaKue, harga ->
-                viewModel.saveData(user.email, namaKue, harga, bitmap!!)
+                onDismissRequest = { showCakeDialog = false }) { namaKue, deskripsi, harga ->
+                viewModel.saveData(user.email, namaKue, deskripsi, harga, bitmap!!)
                 showCakeDialog = false
             }
         }
 
-        if (errorMessage != null){
+        if (showDeleteDialog) {
+            DeleteDialog(onDismissRequest = { showDeleteDialog = false},
+                onConfirm = {selectedCake?.let { viewModel.deleteData(user.email, it.id) }
+                    showDeleteDialog = false
+                })
+        }
+
+        if(errorMessage !=null){
             Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
             viewModel.clearMessage()
         }
     }
-
 }
 
 @Composable
-fun ScreenContent(viewModel: MainViewModel, userId: String, modifier: Modifier = Modifier) {
+fun ScreenContent(viewModel: MainViewModel, userId: String, modifier: Modifier = Modifier, onDelete: (Cake) -> Unit) {
     val data by viewModel.data
     val status by viewModel.status.collectAsState()
 
     LaunchedEffect(userId) {
         viewModel.retrieveData(userId)
     }
-
-    when (status){
-        CakeApi.ApiStatus.LOADING -> {
-            Box(
+    when(status) {
+        ApiStatus.LOADING -> {
+            Box (
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ){
                 CircularProgressIndicator()
             }
         }
-        CakeApi.ApiStatus.SUCCESS -> {
+
+        ApiStatus.SUCCESS -> {
             LazyVerticalGrid(
-                modifier = modifier.fillMaxSize().padding(4.dp),
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(4.dp),
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                items(data) { ListItem(cake = it) }
+                items(data) { cake ->
+                    ListItem(cake = cake) {
+                        onDelete(cake)
+                    }
+                }
             }
         }
-        CakeApi.ApiStatus.FAILED -> {
-            Column(
-                modifier = modifier.fillMaxSize(),
+
+
+        ApiStatus.FAILED -> {
+            Column (
+                modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-              Text(text = stringResource(id = R.string.error))
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
+                Text(text = stringResource(id = R.string.error))
                 Button(
-                    onClick = {viewModel.retrieveData(userId)},
+                    onClick = { viewModel.retrieveData(userId) },
                     modifier = Modifier.padding(top = 16.dp),
                     contentPadding = PaddingValues(horizontal = 32.dp, vertical = 16.dp)
                 ) {
-                    Text(text = stringResource(id = R.string.try_again))
+                    Text(text = stringResource(id =R.string.try_again))
                 }
             }
         }
     }
-    LazyVerticalGrid(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(4.dp),
-        columns = GridCells.Fixed(2),
-    ) {
-        items(data) { ListItem(cake = it) }
-    }
 }
 
 @Composable
-fun ListItem(cake: Cake) {
+fun ListItem(cake: Cake, onDelete: () -> Unit) {
     Box(
         modifier = Modifier
             .padding(4.dp)
-            .border(1.dp, Color.Magenta),
+            .border(1.dp, Color.Gray),
         contentAlignment = Alignment.BottomCenter
-    ){
+    ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(
-                    if(cake.namaKue == "")
-                    CakeApi.getCakeUrl("not-found")
-                    else
-                    CakeApi.getCakeUrl(cake.imageId)
-                )
+                .data(CakeApi.getCakeUrl(cake.imageId))
                 .crossfade(true)
                 .build(),
             contentDescription = stringResource(R.string.gambar, cake.namaKue),
@@ -261,22 +272,36 @@ fun ListItem(cake: Cake) {
                 .fillMaxWidth()
                 .padding(4.dp)
                 .background(Color(red = 0f, green = 0f, blue = 0f, alpha = 0.5f))
+                .padding(4.dp)
         ) {
-            Text(
-                text = cake.namaKue,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-            Text(
-                text = cake.deskripsi,
-                fontSize = 14.sp,
-                color = Color.White
-            )
-            Text(
-                text = cake.harga,
-                fontStyle = FontStyle.Italic,
-                color = Color.White
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = cake.namaKue,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Text(
+                        text = cake.harga,
+                        fontStyle = FontStyle.Italic,
+                        fontSize = 14.sp,
+                        color = Color.White
+                    )
+                }
+                if (cake.mine == "1") {
+                    IconButton(onClick = { onDelete() }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.hapus),
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+
         }
     }
 }
@@ -290,12 +315,10 @@ private suspend fun signIn(context: Context, dataStore: UserDataStore) {
     val request: GetCredentialRequest = GetCredentialRequest.Builder()
         .addCredentialOption(googleIdOption)
         .build()
-
     try {
         val credentialManager = CredentialManager.create(context)
         val result = credentialManager.getCredential(context, request)
         handleSignIn(result, dataStore)
-
     } catch (e: GetCredentialException) {
         Log.e("SIGN-IN", "Error: ${e.errorMessage}")
     }
@@ -331,7 +354,6 @@ private suspend fun signOut(context: Context, dataStore: UserDataStore) {
         Log.e("SIGN-IN", "Error: ${e.errorMessage}")
     }
 }
-
 
 private fun getCroppedImage(
     resolver: ContentResolver,

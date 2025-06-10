@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aleaatapasya0002.assesment3.model.Cake
+import com.aleaatapasya0002.assesment3.network.ApiStatus
 import com.aleaatapasya0002.assesment3.network.CakeApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,35 +16,35 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
 
+
 class MainViewModel : ViewModel() {
     var data = mutableStateOf(emptyList<Cake>())
-    private set
-
-    var status = MutableStateFlow(CakeApi.ApiStatus.LOADING)
-
+        private set
+    var status = MutableStateFlow(ApiStatus.LOADING)
+        private set
     var errorMessage = mutableStateOf<String?>(null)
         private set
 
-
     fun retrieveData(userId: String){
-        viewModelScope.launch(Dispatchers.IO) {
-            status.value = CakeApi.ApiStatus.LOADING
+        viewModelScope.launch(Dispatchers.IO){
+            status.value = ApiStatus.LOADING
             try {
-               data.value = CakeApi.service.getCake(userId)
-               status.value = CakeApi.ApiStatus.SUCCESS
-            } catch (e: Exception){
+                data.value = CakeApi.service.getCake(userId)
+                status.value = ApiStatus.SUCCESS
+            }catch (e: Exception) {
                 Log.d("MainViewModel", "Failure: ${e.message}")
-                status.value = CakeApi.ApiStatus.FAILED
+                status.value = ApiStatus.FAILED
             }
         }
     }
 
-    fun saveData(userId: String, namaKue: String, harga: String, bitmap: Bitmap){
+    fun saveData(userId: String, namaKue: String, deskripsi: String, harga: String, bitmap: Bitmap){
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = CakeApi.service.postCake(
                     userId,
                     namaKue.toRequestBody("text/plain".toMediaTypeOrNull()),
+                    deskripsi.toRequestBody("text/plain".toMediaTypeOrNull()),
                     harga.toRequestBody("text/plain".toMediaTypeOrNull()),
                     bitmap.toMultipartBody()
                 )
@@ -68,4 +69,21 @@ class MainViewModel : ViewModel() {
             "image", "image.jpg", requestBody)
     }
     fun clearMessage(){errorMessage.value = null}
+
+    fun deleteData(userId: String, idCake: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val result = CakeApi.service.deleteCake(userId, idCake)
+                if (result.status == "success") {
+                    retrieveData(userId)
+                } else {
+                    throw Exception(result.message)
+                }
+            } catch (e: Exception) {
+                Log.d("MainViewModel", "Delete Failure: ${e.message}")
+                errorMessage.value = "Error: ${e.message}"
+            }
+        }
+    }
+
 }
