@@ -26,7 +26,9 @@ private val retrofit = Builder()
 
 interface CakeApiService {
     @GET("cake.php")
-    suspend fun getCake(): List<Cake>
+    suspend fun getCake(
+        @Header("Authorization") userId: String
+    ): List<Cake>
 
     @Multipart
     @POST("cake.php")
