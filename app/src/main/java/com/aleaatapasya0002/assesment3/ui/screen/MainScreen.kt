@@ -85,7 +85,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
@@ -141,7 +140,7 @@ fun MainScreen() {
         floatingActionButton = {
             FloatingActionButton(onClick = {val options = CropImageContractOptions(
                 null, CropImageOptions(
-                    imageSourceIncludeGallery = true,
+                    imageSourceIncludeGallery = false,
                     imageSourceIncludeCamera = true,
                     fixAspectRatio = true
                 )
@@ -172,8 +171,8 @@ fun MainScreen() {
         if (showCakeDialog) {
             CakeDialog(
                 bitmap = bitmap,
-                onDismissRequest = { showCakeDialog = false }) { namaKue, harga ->
-                viewModel.saveData(user.email, namaKue, harga, bitmap!!)
+                onDismissRequest = { showCakeDialog = false }) { nama, namaLatin ->
+                viewModel.saveData(user.email, nama, namaLatin, bitmap!!)
                 showCakeDialog = false
             }
         }
@@ -284,7 +283,6 @@ fun ListItem(cake: Cake, onDelete: () -> Unit) {
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
-
                     Text(
                         text = cake.harga,
                         fontStyle = FontStyle.Italic,

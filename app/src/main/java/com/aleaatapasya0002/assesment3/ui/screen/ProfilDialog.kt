@@ -33,7 +33,6 @@ import com.aleaatapasya0002.assesment3.R
 import com.aleaatapasya0002.assesment3.model.User
 import com.aleaatapasya0002.assesment3.ui.theme.Assesment3Theme
 
-
 @Composable
 fun ProfilDialog(
     user: User,
@@ -87,8 +86,7 @@ fun ProfilDialog(
                         modifier = Modifier.padding(8.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                     ) {
-                        Text(
-                            stringResource(R.string.logout),
+                        Text(stringResource(R.string.logout),
                             color = MaterialTheme.colorScheme.error)
                     }
                 }
@@ -96,7 +94,6 @@ fun ProfilDialog(
         }
     }
 }
-
 @Preview(showBackground = true)
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Composable

@@ -16,7 +16,6 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
 
-
 class MainViewModel : ViewModel() {
     var data = mutableStateOf(emptyList<Cake>())
         private set
@@ -47,7 +46,6 @@ class MainViewModel : ViewModel() {
                     harga.toRequestBody("text/plain".toMediaTypeOrNull()),
                     bitmap.toMultipartBody()
                 )
-
                 if (result.status == "success")
                     retrieveData(userId)
                 else
