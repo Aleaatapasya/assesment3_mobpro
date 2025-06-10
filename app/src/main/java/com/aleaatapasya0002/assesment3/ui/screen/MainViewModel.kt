@@ -38,16 +38,16 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun saveData(userId: String, namaKue: String, deskripsi: String, harga: String, bitmap: Bitmap){
+    fun saveData(userId: String, namaKue: String, harga: String, bitmap: Bitmap){
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = CakeApi.service.postCake(
                     userId,
                     namaKue.toRequestBody("text/plain".toMediaTypeOrNull()),
-                    deskripsi.toRequestBody("text/plain".toMediaTypeOrNull()),
                     harga.toRequestBody("text/plain".toMediaTypeOrNull()),
                     bitmap.toMultipartBody()
                 )
+
                 if (result.status == "success")
                     retrieveData(userId)
                 else

@@ -172,8 +172,8 @@ fun MainScreen() {
         if (showCakeDialog) {
             CakeDialog(
                 bitmap = bitmap,
-                onDismissRequest = { showCakeDialog = false }) { namaKue, deskripsi, harga ->
-                viewModel.saveData(user.email, namaKue, deskripsi, harga, bitmap!!)
+                onDismissRequest = { showCakeDialog = false }) { namaKue, harga ->
+                viewModel.saveData(user.email, namaKue, harga, bitmap!!)
                 showCakeDialog = false
             }
         }
@@ -284,6 +284,7 @@ fun ListItem(cake: Cake, onDelete: () -> Unit) {
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
+
                     Text(
                         text = cake.harga,
                         fontStyle = FontStyle.Italic,

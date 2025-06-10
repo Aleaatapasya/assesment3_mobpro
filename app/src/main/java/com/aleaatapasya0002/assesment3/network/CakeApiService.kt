@@ -38,7 +38,6 @@ interface CakeApiService {
     suspend fun postCake(
         @Header("Authorization") userId: String,
         @Part("namaKue") namaKue: RequestBody,
-        @Part("deskripsi") deskripsi: RequestBody,
         @Part("harga") harga: RequestBody,
         @Part image: MultipartBody.Part,
     ): OpStatus

@@ -38,10 +38,9 @@ import com.aleaatapasya0002.assesment3.ui.theme.Assesment3Theme
 fun CakeDialog(
     bitmap: Bitmap?,
     onDismissRequest: () -> Unit,
-    onConfirmation: (String, String,String) -> Unit
+    onConfirmation: (String, String) -> Unit
 ) {
     var namaKue by remember { mutableStateOf("") }
-    var deskripsi by remember { mutableStateOf("") }
     var harga by remember { mutableStateOf("") }
     Dialog(onDismissRequest = {onDismissRequest()}) {
         Card(
@@ -61,17 +60,6 @@ fun CakeDialog(
                     value = namaKue,
                     onValueChange = { namaKue = it },
                     label =  { Text(text = stringResource(id = R.string.namaKue)) },
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Words,
-                        imeAction = ImeAction.Next
-                    ),
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-                OutlinedTextField(
-                    value = deskripsi,
-                    onValueChange = { deskripsi = it },
-                    label =  { Text(text = stringResource(id = R.string.deskripsi)) },
                     maxLines = 1,
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Words,
@@ -102,7 +90,7 @@ fun CakeDialog(
                         Text(text = stringResource(R.string.batal))
                     }
                     OutlinedButton(
-                        onClick = {onConfirmation(namaKue, deskripsi, harga)},
+                        onClick = {onConfirmation(namaKue, harga)},
                         enabled = namaKue.isNotEmpty()&& harga.isNotEmpty(),
                         modifier = Modifier.padding(8.dp)
                     ) {
@@ -123,7 +111,7 @@ fun AddDialogPreview() {
         CakeDialog(
             bitmap = null,
             onDismissRequest = {},
-            onConfirmation = { _, _, _ -> }
+            onConfirmation = { _, _ -> }
         )
     }
 }
