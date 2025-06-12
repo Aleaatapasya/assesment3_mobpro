@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -96,11 +97,8 @@ fun MainScreen() {
     val errorMessage by viewModel.errorMessage
 
     var showDialog by remember { mutableStateOf(false) }
-
     var showCakeDialog by remember { mutableStateOf(false) }
-
     var showDeleteDialog by remember { mutableStateOf(false) }
-
     var selectedCake by remember { mutableStateOf<Cake?>(null) }
 
     var bitmap: Bitmap? by remember { mutableStateOf(null) }
@@ -171,8 +169,8 @@ fun MainScreen() {
         if (showCakeDialog) {
             CakeDialog(
                 bitmap = bitmap,
-                onDismissRequest = { showCakeDialog = false }) { nama, namaLatin ->
-                viewModel.saveData(user.email, nama, namaLatin, bitmap!!)
+                onDismissRequest = { showCakeDialog = false }) { namaKue, harga ->
+                viewModel.saveData(user.email, namaKue, harga, bitmap!!)
                 showCakeDialog = false
             }
         }
@@ -196,6 +194,47 @@ fun ScreenContent(viewModel: MainViewModel, userId: String, modifier: Modifier =
     val data by viewModel.data
     val status by viewModel.status.collectAsState()
 
+    var selectedCake by remember { mutableStateOf<Cake?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var editedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    val context = LocalContext.current
+    val editLauncher = rememberLauncherForActivityResult(CropImageContract()) {
+        editedBitmap = getCroppedImage(context.contentResolver, it)
+    }
+
+    if (showEditDialog && selectedCake!= null) {
+        EditDialog(
+            cake = selectedCake!!,
+            bitmap = editedBitmap,
+            onDismissRequest = {
+                showEditDialog = false
+                editedBitmap = null
+            },
+            onUpdate = { namaKue, harga, bitmap ->
+                viewModel.updateData(
+                    userId,
+                    selectedCake!!.id,
+                    namaKue,
+                    harga,
+                    bitmap
+                )
+                showEditDialog = false
+                editedBitmap = null
+            },
+            onChangeImageClick = {
+                val options = CropImageContractOptions(
+                    null,
+                    CropImageOptions(
+                        imageSourceIncludeGallery = false,
+                        imageSourceIncludeCamera = true,
+                        fixAspectRatio = true
+                    )
+                )
+                editLauncher.launch(options)
+            }
+        )
+    }
     LaunchedEffect(userId) {
         viewModel.retrieveData(userId)
     }
@@ -230,6 +269,7 @@ fun ScreenContent(viewModel: MainViewModel, userId: String, modifier: Modifier =
                         ListItem(
                             cake = cake,
                             onDelete = { onDelete(cake) },
+                            onEdit = {selectedCake = it; showEditDialog = true},
                         )
                     }
                 }
@@ -255,7 +295,7 @@ fun ScreenContent(viewModel: MainViewModel, userId: String, modifier: Modifier =
 }
 
 @Composable
-fun ListItem(cake: Cake, onDelete: () -> Unit) {
+fun ListItem(cake: Cake, onDelete: () -> Unit, onEdit: (Cake) -> Unit) {
     Box(
         modifier = Modifier
             .padding(4.dp)
@@ -300,7 +340,17 @@ fun ListItem(cake: Cake, onDelete: () -> Unit) {
                     )
                 }
                 if (cake.mine == "1") {
-                    IconButton(onClick = { onDelete() }) {
+                    IconButton(onClick = { onEdit(cake) }) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = stringResource(R.string.edit),
+                            tint = Color.White
+                        )
+                    }
+                    IconButton(
+                        onClick = {onDelete()},
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    ){
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = stringResource(R.string.hapus),
@@ -309,7 +359,6 @@ fun ListItem(cake: Cake, onDelete: () -> Unit) {
                     }
                 }
             }
-
         }
     }
 }

@@ -57,16 +57,36 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun Bitmap.toMultipartBody(): MultipartBody.Part{
-        val stream = ByteArrayOutputStream()
-        compress(Bitmap.CompressFormat.JPEG, 80, stream)
-        val byteArray = stream.toByteArray()
-        val requestBody = byteArray.toRequestBody(
-            "image/jpg".toMediaTypeOrNull(), 0, byteArray.size)
-        return MultipartBody.Part.createFormData(
-            "image", "image.jpg", requestBody)
+    fun updateData(userId: String, id: String, namaKue: String, harga: String, bitmap: Bitmap?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val result = if (bitmap != null) {
+                    CakeApi.service.updateImage(
+                        userId,
+                        id.toRequestBody("text/plain".toMediaTypeOrNull()),
+                        namaKue.toRequestBody("text/plain".toMediaTypeOrNull()),
+                        harga.toRequestBody("text/plain".toMediaTypeOrNull()),
+                        bitmap.toMultipartBody()
+                    )
+                } else {
+                    CakeApi.service.updateCake(
+                        userId,
+                        id.toRequestBody("text/plain".toMediaTypeOrNull()),
+                        namaKue.toRequestBody("text/plain".toMediaTypeOrNull()),
+                        harga.toRequestBody("text/plain".toMediaTypeOrNull()),
+                        )
+                }
+
+                if (result.status == "success") {
+                    retrieveData(userId)
+                } else {
+                    throw Exception(result.message)
+                }
+            } catch (e: Exception) {
+                errorMessage.value = "Error saat update: ${e.message}"
+            }
+        }
     }
-    fun clearMessage(){errorMessage.value = null}
 
     fun deleteData(userId: String, idCake: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -83,5 +103,16 @@ class MainViewModel : ViewModel() {
             }
         }
     }
+
+    private fun Bitmap.toMultipartBody(): MultipartBody.Part{
+        val stream = ByteArrayOutputStream()
+        compress(Bitmap.CompressFormat.JPEG, 80, stream)
+        val byteArray = stream.toByteArray()
+        val requestBody = byteArray.toRequestBody(
+            "image/jpg".toMediaTypeOrNull(), 0, byteArray.size)
+        return MultipartBody.Part.createFormData(
+            "image", "image.jpg", requestBody)
+    }
+    fun clearMessage(){errorMessage.value = null}
 
 }

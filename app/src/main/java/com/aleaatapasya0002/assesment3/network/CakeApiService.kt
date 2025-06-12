@@ -43,6 +43,25 @@ interface CakeApiService {
         @Part image: MultipartBody.Part,
     ): OpStatus
 
+    @Multipart
+    @POST("cake.php")
+    suspend fun updateCake(
+        @Header("Authorization") userId: String,
+        @Part("id") id: RequestBody,
+        @Part("namaKue") namaKue: RequestBody,
+        @Part("harga") harga: RequestBody
+    ): OpStatus
+
+    @Multipart
+    @POST("cake.php")
+    suspend fun updateImage(
+        @Header("Authorization") userId: String,
+        @Part("id") id: RequestBody,
+        @Part("namaKue") namaKue: RequestBody,
+        @Part("harga") harga: RequestBody,
+        @Part image: MultipartBody.Part,
+    ): OpStatus
+
     @DELETE("cake.php")
     suspend fun deleteCake(
         @Header("Authorization") userId: String,
