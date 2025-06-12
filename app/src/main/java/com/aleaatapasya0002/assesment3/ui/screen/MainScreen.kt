@@ -113,7 +113,7 @@ fun MainScreen() {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = stringResource(id = R.string.app_name))
+                    Text(text = stringResource(id = R.string.cake))
                 },
                 colors = TopAppBarDefaults.mediumTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -140,7 +140,7 @@ fun MainScreen() {
         floatingActionButton = {
             FloatingActionButton(onClick = {val options = CropImageContractOptions(
                 null, CropImageOptions(
-                    imageSourceIncludeGallery = false,
+                    imageSourceIncludeGallery = true,
                     imageSourceIncludeCamera = true,
                     fixAspectRatio = true
                 )
@@ -210,22 +210,31 @@ fun ScreenContent(viewModel: MainViewModel, userId: String, modifier: Modifier =
         }
 
         ApiStatus.SUCCESS -> {
-            LazyVerticalGrid(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(4.dp),
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(bottom = 80.dp)
-            ) {
-                items(data) { cake ->
-                    ListItem(cake = cake) {
-                        onDelete(cake)
+            if (data.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.data_kosong),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            } else {
+                LazyVerticalGrid(
+                    modifier = modifier.fillMaxSize().padding(4.dp),
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    items(data) { cake ->
+                        ListItem(
+                            cake = cake,
+                            onDelete = { onDelete(cake) },
+                        )
                     }
                 }
             }
         }
-
-
         ApiStatus.FAILED -> {
             Column (
                 modifier = Modifier.fillMaxSize(),

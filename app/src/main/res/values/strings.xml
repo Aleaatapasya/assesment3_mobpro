@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Assesment 3</string>
+    <string name="cake">Cake Catalogue</string>
     <string name="gambar">Gambar %1$s</string>
     <string name="error">Gagal memuat data... koneksi error.</string>
     <string name="try_again">Coba lagi</string>
@@ -14,4 +15,5 @@
     <string name="simpan">Simpan</string>
     <string name="hapus">Hapus</string>
     <string name="pesan_hapus">Apakah anda yakin ingin menghapus catatan ini?</string>
+    <string name="data_kosong">Data kue masih kosong silahkan tambahkan!</string>
 </resources>
